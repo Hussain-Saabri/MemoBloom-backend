@@ -1,34 +1,40 @@
-    require("dotenv").config();
-    const config=require("./config.json");
-    const express=require("express");
-    const cors=require("cors");
-    const mongoose=require("mongoose");
-    mongoose.connect(config.connectionString);
-    const app=express();
-    
-    const jwt=require("jsonwebtoken");
-    const {authenticateToken}=require("./utilities");
-    const User=require("./models/user.model");
-    
-    const Note=require("./models/note.model");
-    
-    
-    app.use(express.json())
+require("dotenv").config();
+const config = require("./config.json");
+const express = require("express");
+const cors = require("cors");
+const mongoose = require("mongoose");
+mongoose.connect(config.connectionString);
 
-    app.use(cors({
-  origin: 'https://memo-bloom-nevp.vercel.app',  // your frontend URL
+const app = express();
+
+const jwt = require("jsonwebtoken");
+const { authenticateToken } = require("./utilities");
+const User = require("./models/user.model");
+const Note = require("./models/note.model");
+
+// Define CORS options
+const corsOptions = {
+  origin: 'https://memo-bloom-nevp.vercel.app', // your frontend URL without trailing slash
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  credentials: true  // if you use cookies or auth headers
-}));
+  credentials: true, // if you use cookies or auth headers
+};
+
+app.use(express.json());
+
+// Use CORS middleware with options
 app.use(cors(corsOptions));
-app.options('*', cors({
-  origin: 'https://memo-bloom-nevp.vercel.app',
-  credentials: true
-}));
-app.options('*', cors(corsOptions));
-    app.get("/",(req,res)=>{
-        res.json({data:"hello"});});
-//create an account
+app.options('*', cors(corsOptions)); // enable pre-flight for all routes
+
+app.get("/", (req, res) => {
+  res.json({ data: "hello" });
+});
+
+// ... your routes like /create-account, /login, etc ...
+
+// Export app
+module.exports = app;
+
+        //create an account
 app.post("/create-account",async(req,res)=>{
     const{fullname,email,password}=req.body;
     if(!fullname){
