@@ -5,6 +5,7 @@
     const mongoose=require("mongoose");
     mongoose.connect(config.connectionString);
     const app=express();
+    const cors = require('cors');
     const jwt=require("jsonwebtoken");
     const {authenticateToken}=require("./utilities");
     const User=require("./models/user.model");
@@ -14,11 +15,11 @@
     
     app.use(express.json())
 
-    app.use(cors({origin:"*"}));
-    const port=8000;
-    app.listen(port,()=>{
-        console.log(`Server started on server ${port}`);
-    });
+    app.use(cors({
+  origin: 'https://memo-bloom-nevp.vercel.app/',  // your frontend URL
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  credentials: true  // if you use cookies or auth headers
+}));
     app.get("/",(req,res)=>{
         res.json({data:"hello"});});
 //create an account
