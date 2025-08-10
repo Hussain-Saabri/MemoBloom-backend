@@ -5,7 +5,7 @@
     const mongoose=require("mongoose");
     mongoose.connect(config.connectionString);
     const app=express();
-    const cors = require('cors');
+    
     const jwt=require("jsonwebtoken");
     const {authenticateToken}=require("./utilities");
     const User=require("./models/user.model");
