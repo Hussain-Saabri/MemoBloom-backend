@@ -16,7 +16,7 @@
     app.use(express.json())
 
     app.use(cors({
-  origin: 'https://memo-bloom-nevp.vercel.app/',  // your frontend URL
+  origin: 'https://memo-bloom-nevp.vercel.app',  // your frontend URL
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true  // if you use cookies or auth headers
 }));
