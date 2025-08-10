@@ -20,11 +20,12 @@
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
   credentials: true  // if you use cookies or auth headers
 }));
-
+app.use(cors(corsOptions));
 app.options('*', cors({
   origin: 'https://memo-bloom-nevp.vercel.app',
   credentials: true
 }));
+app.options('*', cors(corsOptions));
     app.get("/",(req,res)=>{
         res.json({data:"hello"});});
 //create an account
