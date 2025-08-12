@@ -14,10 +14,11 @@ const Note = require("./models/note.model");
 app.use(express.json());
 
 app.use(cors({ origin: "*" }));
-const port = 8000;
+const port = process.env.PORT || 8000;
 app.listen(port, () => {
-  console.log(`Server started on server ${port}`);
+  console.log(`Server started on port ${port}`);
 });
+
 app.get("/", (req, res) => {
   res.json({ data: "hello" });
 });
