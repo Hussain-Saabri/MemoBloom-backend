@@ -67,11 +67,45 @@ app.post("/create-account", async (req, res) => {
   });
   //mailoptions for sending the email use by transporter
   const mailOptions = {
-    from: process.env.EMAIL_USERNAME,
-    to: email,
-    subject: "Your Otp for MemoBloom Signup",
-    text: `Hello ${fullname} ,\n\nYour otp for signup is ${otp}. It will expire in 10 minutes. \n\nThank You!`,
-  };
+  from: process.env.EMAIL_USERNAME,
+  to: email,
+  subject: "[MemoBloom] Your OTP for Signup",
+  html: `
+    <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 20px; color: #333;">
+      <div style="max-width: 500px; margin: auto; background: white; border-radius: 8px; padding: 20px; border: 1px solid #e5e7eb;">
+        
+        <h2 style="text-align: center; color: #2563eb; margin-bottom: 10px;">
+          Welcome to <span style="color: #10b981;">MemoBloom</span> 🌸
+        </h2>
+
+        <p style="font-size: 15px; line-height: 1.5;">
+          Hi <strong>${fullname}</strong>,
+        </p>
+        
+        <p style="font-size: 15px; line-height: 1.5;">
+          We received a request to sign up for a MemoBloom account using your email.
+        </p>
+
+        <div style="background: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; margin: 20px 0; text-align: center; border-radius: 6px;">
+          <p style="margin: 0; font-size: 16px;">Your OTP code is:</p>
+          <h1 style="margin: 5px 0; font-size: 32px; letter-spacing: 3px; color: #1d4ed8;">${otp}</h1>
+          <p style="margin: 0; font-size: 13px; color: #6b7280;">This OTP will expire in <strong>10 minutes</strong>.</p>
+        </div>
+
+        <p style="font-size: 14px; color: #6b7280;">
+          If you did not request this, you can safely ignore this email.
+        </p>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;" />
+
+        <p style="text-align: center; font-size: 13px; color: #9ca3af;">
+          © ${new Date().getFullYear()} MemoBloom. All rights reserved.
+        </p>
+      </div>
+    </div>
+  `,
+};
+
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       console.log("Error sending the otp email", error);
@@ -155,9 +189,43 @@ app.post("/resend-otp", async (req, res) => {
   const mailOptions = {
     from: process.env.EMAIL_USERNAME,
     to: email,
-    subject: "Your Otp for MemoBloom Signup",
-    text: `Hello ${user.fullname} ,\n\nYour otp for signup is ${otp}. It will expire in 10 minutes. \n\nThank You!`,
-  };
+    subject: "[MemoBloom] Your OTP for Signup",
+  html: `
+    <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 20px; color: #333;">
+      <div style="max-width: 500px; margin: auto; background: white; border-radius: 8px; padding: 20px; border: 1px solid #e5e7eb;">
+        
+        <h2 style="text-align: center; color: #2563eb; margin-bottom: 10px;">
+          Welcome to <span style="color: #10b981;">MemoBloom</span> 
+        </h2>
+
+        <p style="font-size: 15px; line-height: 1.5;">
+          Hi <strong>${user.fullname}</strong>,
+        </p>
+        
+        <p style="font-size: 15px; line-height: 1.5;">
+          We received a request to sign up for a MemoBloom account using your email.
+        </p>
+
+        <div style="background: #f0f9ff; border: 1px solid #bae6fd; padding: 15px; margin: 20px 0; text-align: center; border-radius: 6px;">
+          <p style="margin: 0; font-size: 16px;">Your OTP code is:</p>
+          <h1 style="margin: 5px 0; font-size: 32px; letter-spacing: 3px; color: #1d4ed8;">${otp}</h1>
+          <p style="margin: 0; font-size: 13px; color: #6b7280;">This OTP will expire in <strong>10 minutes</strong>.</p>
+        </div>
+
+        <p style="font-size: 14px; color: #6b7280;">
+          If you did not request this, you can safely ignore this email.
+        </p>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;" />
+
+        <p style="text-align: center; font-size: 13px; color: #9ca3af;">
+          © ${new Date().getFullYear()} MemoBloom. All rights reserved.
+        </p>
+      </div>
+    </div>
+  `,
+};
+  
   transporter.sendMail(mailOptions, (error, info) => {
     if (error) {
       console.log("Error sending the otp email", error);
@@ -168,6 +236,161 @@ app.post("/resend-otp", async (req, res) => {
       console.log("Otp email sent again", info.response);
 
       return res.status(201).json({ error: false, message: "Otp send again" });
+    }
+  });
+});
+
+//forgot password
+app.post("/forgot-password", async (req, res) => {
+  const { email } = req.body;
+  console.log("Resending the otp to an email for forgot password", email);
+  const otp = Math.floor(100000 + Math.random() * 900000); // 6-digit OTP
+  const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
+
+  console.log("6 digit otp would be", otp);
+  console.log("otp expirey will be", otpExpiry);
+  // Find user by email and update OTP & expiry
+  const user = await User.findOneAndUpdate(
+    { email: email }, // condition
+    { otp: otp, otpExpiry: otpExpiry }, // new values
+    { new: true } // return updated document
+  );
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USERNAME, //email of my account
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+  //mailoptions for sending the email use by transporter
+  const mailOptions = {
+  from: process.env.EMAIL_USERNAME,
+  to: email,
+  subject: "[MemoBloom] Your OTP for Password Reset",
+  html: `
+    <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 20px; color: #333;">
+      <div style="max-width: 500px; margin: auto; background: white; border-radius: 8px; padding: 20px; border: 1px solid #e5e7eb;">
+        
+        <h2 style="text-align: center; color: #dc2626; margin-bottom: 10px;">
+          Password Reset Request 🔒
+        </h2>
+
+        <p style="font-size: 15px; line-height: 1.5;">
+          Hi <strong>${user.fullname}</strong>,
+        </p>
+        
+        <p style="font-size: 15px; line-height: 1.5;">
+          We received a request to reset your password for your <strong>MemoBloom</strong> account.
+        </p>
+
+        <div style="background: #fef2f2; border: 1px solid #fecaca; padding: 15px; margin: 20px 0; text-align: center; border-radius: 6px;">
+          <p style="margin: 0; font-size: 16px;">Your OTP code is:</p>
+          <h1 style="margin: 5px 0; font-size: 32px; letter-spacing: 3px; color: #b91c1c;">${otp}</h1>
+          <p style="margin: 0; font-size: 13px; color: #6b7280;">This OTP will expire in <strong>10 minutes</strong>.</p>
+        </div>
+
+        <p style="font-size: 14px; color: #6b7280;">
+          If you did not request this password reset, you can safely ignore this email. Your account will remain secure.
+        </p>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;" />
+
+        <p style="text-align: center; font-size: 13px; color: #9ca3af;">
+          © ${new Date().getFullYear()} MemoBloom. All rights reserved.
+        </p>
+      </div>
+    </div>
+  `,
+};
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log("Error sending the otp email", error);
+      return res
+        .status(500)
+        .json({ error: true, message: "Falied to send otp email" });
+    } else {
+      console.log("Otp email sent again for forgot password", info.response);
+
+      return res.status(201).json({ error: false, message: "Otp email sent again for forgot password" });
+    }
+  });
+});
+//update-passowrd
+app.post("/update-password", async (req, res) => {
+  const { email,password } = req.body;
+  console.log(`updating the ${password} for email `,email);
+  
+  // Find user by email and update password
+  const user = await User.findOneAndUpdate(
+    { email: email }, // condition
+    { password: password }, // new values
+    { new: true } // return updated document
+  );
+
+  const transporter = nodemailer.createTransport({
+    service: "gmail",
+    auth: {
+      user: process.env.EMAIL_USERNAME, //email of my account
+      pass: process.env.EMAIL_PASSWORD,
+    },
+  });
+  //mailoptions for sending the email use by transporter
+  const mailOptions = {
+  from: process.env.EMAIL_USERNAME,
+  to: email,
+  subject: "[MemoBloom] Password Updated Successfully ✅",
+  html: `
+    <div style="font-family: Arial, sans-serif; background-color: #f9fafb; padding: 20px; color: #333;">
+      <div style="max-width: 500px; margin: auto; background: white; border-radius: 8px; padding: 20px; border: 1px solid #e5e7eb;">
+        
+        <h2 style="text-align: center; color: #16a34a; margin-bottom: 10px;">
+          Password Updated Successfully ✅
+        </h2>
+
+        <p style="font-size: 15px; line-height: 1.5;">
+          Hi <strong>${user.fullname}</strong>,
+        </p>
+        
+        <p style="font-size: 15px; line-height: 1.5;">
+          This is to confirm that your <strong>MemoBloom</strong> account password was updated successfully.
+        </p>
+
+        <div style="background: #f0fdf4; border: 1px solid #bbf7d0; padding: 15px; margin: 20px 0; border-radius: 6px; text-align: center;">
+          <p style="margin: 0; font-size: 14px; color: #166534;">
+            If you made this change, you can safely ignore this email.
+          </p>
+          <p style="margin: 5px 0 0 0; font-size: 14px; color: #b91c1c;">
+            If you did not change your password, please reset it immediately or contact our support team.
+          </p>
+        </div>
+
+        <p style="font-size: 14px; color: #6b7280;">
+          Keeping your account secure is our top priority.  
+          Thank you for using MemoBloom!
+        </p>
+
+        <hr style="margin: 20px 0; border: none; border-top: 1px solid #e5e7eb;" />
+
+        <p style="text-align: center; font-size: 13px; color: #9ca3af;">
+          © ${new Date().getFullYear()} MemoBloom. All rights reserved.
+        </p>
+      </div>
+    </div>
+  `,
+};
+
+  transporter.sendMail(mailOptions, (error, info) => {
+    if (error) {
+      console.log("Error sending the otp email", error);
+      return res
+        .status(500)
+        .json({ error: true, message: "Falied to send email" });
+    } else {
+      console.log("updated password email sent sucessfully", info.response);
+
+      return res.status(201).json({ error: false, message: "password updated successfully" });
     }
   });
 });
